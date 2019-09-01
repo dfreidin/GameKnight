@@ -149,24 +149,126 @@ class InputGroup(graphene.InputObjectType):
 class InputRating(graphene.InputObjectType):
     username = graphene.String(required=True)
     game_name = graphene.String(required=True)
+    rating = graphene.Int()
+    owned = graphene.Boolean()
 
 class InputMember(graphene.InputObjectType):
     username = graphene.String(required=True)
     group_name = graphene.String(required=True)
+    is_admin = graphene.Boolean()
 
-class createUser(graphene.Mutation):
+class CreateUser(graphene.Mutation):
     class Arguments:
         user = InputUser(required=True)
     Output = User
     def mutate(self, info, user):
         pool = info.root_value["pool"]
-        dl = info.root_value["users"]
+        dl = info.root_value["dataloaders"]["users"]
         db_user = {
             "username": user.username
         }
-        user_id = db.mutate(pool, sql.INSERT_USER, db_user)
+        user_id = db.mutate(pool, sql.INSERT_USER, db_user).get("id")
         return dl.load(user_id).then(lambda u: User(**u))
 
+class CreateGame(graphene.Mutation):
+    class Arguments:
+        game = InputGame(required=True)
+    Output = Game
+    def mutate(self, info, game):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["games"]
+        db_game = {
+            "name": game.name,
+            "bgg_id": game.bgg_id
+        }
+        game_id = db.mutate(pool, sql.INSERT_GAME, db_game).get("id")
+        return dl.load(game_id).then(lambda g: Game(**g))
+
+class CreateGroup(graphene.Mutation):
+    class Arguments:
+        group = InputGroup(required=True)
+    Output = Group
+    def mutate(self, info, group):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["groups"]
+        db_group = {
+            "name": group.name
+        }
+        group_id = db.mutate(pool, sql.INSERT_GROUP, db_group).get("id")
+        return dl.load(group_id).then(lambda g: Group(**g))
+
+class CreateRating(graphene.Mutation):
+    class Arguments:
+        rating = InputRating(required=True)
+    Output = Rating
+    def mutate(self, info, rating):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["ratings"]
+        db_rating = {
+            "username": rating.username,
+            "game_name": rating.game_name,
+            "rating": rating.rating,
+            "owned": rating.owned
+        }
+        rating_id = db.mutate(pool, sql.INSERT_RATING, db_rating).get("id")
+        return dl.load(rating_id).then(lambda g: Rating(**g))
+
+class CreateMembership(graphene.Mutation):
+    class Arguments:
+        membership = InputMember(required=True)
+    Output = Membership
+    def mutate(self, info, membership):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["memberships"]
+        db_membership = {
+            "username": membership.username,
+            "group_name": membership.group_name,
+            "is_admin": membership.is_admin
+        }
+        membership_id = db.mutate(pool, sql.INSERT_MEMBER, db_membership).get("id")
+        return dl.load(membership_id).then(lambda g: Membership(**g))
+
+class UpdateRating(graphene.Mutation):
+    class Arguments:
+        rating = InputRating(required=True)
+    Output = Rating
+    def mutate(self, info, rating):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["ratings"]
+        db_rating = {
+            "username": rating.username,
+            "game_name": rating.game_name,
+            "rating": rating.rating,
+            "owned": rating.owned
+        }
+        rating_id = db.mutate(pool, sql.UPDATE_RATING, db_rating).get("id")
+        return dl.load(rating_id).then(lambda g: Rating(**g))
+
+class UpdateMembership(graphene.Mutation):
+    class Arguments:
+        membership = InputMember(required=True)
+    Output = Membership
+    def mutate(self, info, membership):
+        pool = info.root_value["pool"]
+        dl = info.root_value["dataloaders"]["memberships"]
+        db_membership = {
+            "username": membership.username,
+            "group_name": membership.group_name,
+            "is_admin": membership.is_admin
+        }
+        membership_id = db.mutate(pool, sql.UPDATE_MEMBER, db_membership).get("id")
+        return dl.load(membership_id).then(lambda g: Membership(**g))
+
+class Mutation(graphene.ObjectType):
+    create_user = CreateUser.Field()
+    create_game = CreateGame.Field()
+    create_group = CreateGroup.Field()
+    create_rating = CreateRating.Field()
+    create_membership = CreateMembership.Field()
+    update_rating = UpdateRating.Field()
+    update_membership = UpdateMembership.Field()
+
 schema = graphene.Schema(
-    query=Query
+    query=Query,
+    mutation=Mutation
 )

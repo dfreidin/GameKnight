@@ -43,6 +43,7 @@ def mutate(pool, query, subs):
     with get_connection(pool) as conn:
         with conn.cursor(cursor_factory=DictCursor) as cursor:
             cursor.execute(query, subs)
+            conn.commit()
             try:
                 results = cursor.fetchone()
             except:
@@ -53,7 +54,7 @@ def create_users_dataloader(pool):
     class UserLoader(DataLoader):
         def batch_load_fn(self, keys):
             users = fetch(pool, sql.SELECT_USERS_BY_ID, {"ids": keys})
-            users_dict = {u["id"]: u for u in users if u}
+            users_dict = {u["id"]: dict(u) for u in users if u}
             return Promise.resolve([users_dict[k] for k in keys])
     return UserLoader()
 
@@ -61,7 +62,7 @@ def create_games_dataloader(pool):
     class GameLoader(DataLoader):
         def batch_load_fn(self, keys):
             games = fetch(pool, sql.SELECT_GAMES_BY_ID, {"ids": keys})
-            games_dict = {g["id"]: g for g in games if g}
+            games_dict = {g["id"]: dict(g) for g in games if g}
             return Promise.resolve([games_dict[k] for k in keys])
     return GameLoader()
 
@@ -69,7 +70,7 @@ def create_groups_dataloader(pool):
     class GroupLoader(DataLoader):
         def batch_load_fn(self, keys):
             groups = fetch(pool, sql.SELECT_GROUPS_BY_ID, {"ids": keys})
-            groups_dict = {g["id"]: g for g in groups if g}
+            groups_dict = {g["id"]: dict(g) for g in groups if g}
             return Promise.resolve([groups_dict[k] for k in keys])
     return GroupLoader()
 
@@ -77,7 +78,7 @@ def create_ratings_dataloader(pool):
     class UserLoader(DataLoader):
         def batch_load_fn(self, keys):
             ratings = fetch(pool, sql.SELECT_RATINGS_BY_ID, {"ids": keys})
-            ratings_dict = {r["id"]: r for r in ratings if r}
+            ratings_dict = {r["id"]: dict(r) for r in ratings if r}
             return Promise.resolve([ratings_dict[k] for k in keys])
     return UserLoader()
 
@@ -85,7 +86,7 @@ def create_members_dataloader(pool):
     class UserLoader(DataLoader):
         def batch_load_fn(self, keys):
             members = fetch(pool, sql.SELECT_MEMBERS_BY_ID, {"ids": keys})
-            members_dict = {m["id"]: m for m in members if m}
+            members_dict = {m["id"]: dict(m) for m in members if m}
             return Promise.resolve([members_dict[k] for k in keys])
     return UserLoader()
 
@@ -93,6 +94,6 @@ def create_friends_dataloader(pool):
     class UserLoader(DataLoader):
         def batch_load_fn(self, keys):
             friends = fetch(pool, sql.SELECT_FRIENDS_BY_ID, {"ids": keys})
-            friends_dict = {u["id"]: u for u in friends if u}
+            friends_dict = {u["id"]: dict(u) for u in friends if u}
             return Promise.resolve([friends_dict[k] for k in keys])
     return UserLoader()
