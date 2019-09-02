@@ -3,21 +3,28 @@ from flask.logging import default_handler
 from gk_graphql.schema import schema
 # from gk_graphql.dummy_schema import schema
 from flask_graphql import GraphQLView
-import sys
 import logging
+from os import getenv
 
 import gk_graphql.db as db
+import gk_graphql.aws as aws
+
+db_name = getenv("DB_NAME", "game-knight-dev")
+db_secret = aws.get_secret()
+db_conn_info = {
+    "dbname": db_name,
+    "user": db_secret.get("username"),
+    "password": db_secret.get("password"),
+    "host": db_secret.get("host"),
+    "port": int(db_secret.get("port"))
+}
 
 app = Flask(__name__)
 
-# handler = logging.StreamHandler(sys.stdout)
-# handler.setFormatter(logging.Formatter(
-#     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-# app.logger.addHandler(handler)
 app.logger.setLevel(logging.DEBUG)
 logging.getLogger().addHandler(default_handler)
 
-pool = db.create_connection_pool()
+pool = db.create_connection_pool(db_config=db_conn_info)
 
 @app.route("/hello")
 def hello_route():
