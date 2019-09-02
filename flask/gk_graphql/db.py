@@ -16,7 +16,7 @@ def load_db_connection_info():
         db_config = json.load(f)
     return db_config
 
-def create_connection_pool(db_config=load_db_connection_info()):
+def create_connection_pool(db_config):
     pool = ThreadedConnectionPool(1, 10, **db_config)
     return pool
 

@@ -14,7 +14,7 @@ Jinja2==2.10.1
 jmespath==0.9.4
 MarkupSafe==1.1.1
 promise==2.2.1
-psycopg2==2.8.3
+psycopg2-binary==2.8.3
 python-dateutil==2.8.0
 rope==0.14.0
 Rx==1.6.1
